@@ -1,4 +1,4 @@
-# pi-fleet-wm
+# mv_generate
 
 MV 生成工作流手册（脱敏版）。从素材到成片的本地全链路 MV 生产线，一份面向 agent 的照做型操作手册。
 
