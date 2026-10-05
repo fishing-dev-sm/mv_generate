@@ -20,7 +20,16 @@ MV 生成工作流手册（脱敏版）。从素材到成片的本地全链路 M
 | `{{LOCAL_MACHINE}}` | 本地无 GPU 剪辑机 | 你的本地机名 |
 | `{{FIGMA_ACCOUNT}}` | Figma MCP 授权账号邮箱 | 有权限的 Figma 账号 |
 | `{{FIGMA_ACCOUNT_ALT}}` | 无权限的备用账号邮箱 | 对应账号 |
+| `{{FIGMA_TEAM}}` | Figma 团队名 | 你的团队名 |
 | `{{FIGMA_FILE_KEY}}` | Figma 设计稿 fileKey | 你的 Figma 文件 key |
+
+项目代号（原文用本地目录名派生，含拼音人名，已替换为通用代号）：
+
+| 代号 | 含义 |
+|---|---|
+| `project-a` | 主项目（本文档主线） |
+| `project-b` | 姊妹项目（口型经验回流来源） |
+| `project-c` | 竖屏项目（§16 竖屏分支） |
 
 路径约定（脚本 / 命令相对这些目录）：
 
