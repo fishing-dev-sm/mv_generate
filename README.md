@@ -9,6 +9,17 @@ MV 生成工作流手册（脱敏版）。从素材到成片的本地全链路 M
 > 注：原文的姊妹文档 `mv_render.md`（引擎 / 分窗并行 / 编码 / QC / 排障）已废弃，未随本仓库发布；
 > `mv_generate.md` 正文中对它的引用属历史遗留，可忽略。
 
+## 工具链
+
+`mv_generate.md` 正文引用的全部脚本均已随仓库发布（脱敏后），目录结构：
+
+- `tools/` —— 工作区脚本（写词 / 作曲 / 音频分析 / 分镜 / Plate 抽卡 / H3 出片 / 口型闭环 / 视觉层规划 / 渲染合成 / QC 等，36 个 .py / .js / .sh）。
+- `engine/` —— 视觉层引擎（render.js / render2.js + page.html / page2.html + visual.js + style.css）。
+- `video/tools/` —— H3 视频生成客户端（minimax_h3_video.py，t2v / i2v / r2v）。
+- `music/tools/` —— Music3 作曲客户端（minimax_music3_comfy.py）。
+
+脚本中的作品级内容（歌词、卡片文案、分镜描述、报幕句、hook 词等）均已替换为「示例」占位，代码逻辑、时间轴、结构、真实数据、风格/角色规范与公开品牌名保持不变；内网 IP、主机名、SSH 用户名、绝对路径等已替换为下方占位符，使用前请按自己的环境替换。
+
 ## 脱敏说明
 
 本文档已脱敏——原稿中与本地环境强相关的路径、主机、账号、内网 IP 均替换为占位符，使用前请按自己的环境替换。
@@ -18,6 +29,8 @@ MV 生成工作流手册（脱敏版）。从素材到成片的本地全链路 M
 | `{{IMAGE_HOST}}` | 文生图 ComfyUI 服务所在主机（内网 IP） | 你的 t2i / edit 服务地址 |
 | `{{H3_HOST}}` | 视频 + 音乐生成机（SSH 隧道） | 你的 H3 / Music3 主机 |
 | `{{LOCAL_MACHINE}}` | 本地无 GPU 剪辑机 | 你的本地机名 |
+| `{{SSH_USER}}` | SSH 登录用户名 | 你的用户名 |
+| `{{VOICE_HOST}}` | 声带性别判定主机（SSH） | 你的语音分析主机 |
 | `{{FIGMA_ACCOUNT}}` | Figma MCP 授权账号邮箱 | 有权限的 Figma 账号 |
 | `{{FIGMA_ACCOUNT_ALT}}` | 无权限的备用账号邮箱 | 对应账号 |
 | `{{FIGMA_TEAM}}` | Figma 团队名 | 你的团队名 |
@@ -42,4 +55,6 @@ MV 生成工作流手册（脱敏版）。从素材到成片的本地全链路 M
 | `~/mv-workspace/` | MV 工作区（正文所有脚本路径相对它） |
 | `~/mv-docs/` | 上游方法论 PDF、设计规范转述等文档目录 |
 | `~/comfyui/` | ComfyUI 安装目录 |
+| `~/voice-tools/` | 声带性别判定脚本目录（gender_f0.py 所在） |
+| `~/mv-video-tools/` | H3 / Music3 视频生成客户端目录（minimax_h3_video.py 所在） |
 | `~/staging/` | 加速补丁回退清单存档目录 |

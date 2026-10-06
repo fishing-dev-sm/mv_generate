@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<!-- ⚠️ 已废弃（2026-10-01）：旧视觉方案（陶橙 #E8632A / 78px karaoke 字幕）的演示页。
+     生产用 engine/page2.html + engine/visual.js（对齐 Figma《Escape Velocity — Motion Layers》）。 -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="stage" width="1920" height="1080"></canvas>
+<script>
+/* 每帧是时间的纯函数：render(t) 只依赖注入的 DATA 和参数 t。 */
+let DATA = null;
+let IMG = null;
+const W = 1920, H = 1080;
+const cv = document.getElementById("stage");
+const ctx = cv.getContext("2d");
+
+window.__setData = function (data, imgSrc) {
+  DATA = data;
+  return new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => { IMG = im; resolve(true); };
+    im.onerror = reject;
+    im.src = imgSrc;
+  });
+};
+
+function beatPulse(t) {
+  // 最近一个已过节拍起，指数衰减的 0..1 脉冲
+  const beats = DATA.beats;
+  let last = -1e9;
+  for (let i = 0; i < beats.length; i++) {
+    if (beats[i] <= t) last = beats[i]; else break;
+  }
+  const dt = t - last;
+  if (dt < 0 || dt > 0.6) return { pulse: 0, idx: -1 };
+  return { pulse: Math.exp(-dt * 8), idx: 0 };
+}
+
+function drawBackground(t) {
+  const { t0, t1 } = DATA.config;
+  const u = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
+  const { pulse } = beatPulse(t);
+  const zoom = 1.02 + 0.10 * u + 0.02 * pulse;      // Ken Burns 推进 + 拍点脉冲
+  const panX = -20 * u, panY = -12 * u;             // 缓慢左移
+  const iw = IMG.width, ih = IMG.height;
+  const scale = Math.max(W / iw, H / ih) * zoom;
+  const dw = iw * scale, dh = ih * scale;
+  const dx = (W - dw) / 2 + panX, dy = (H - dh) / 2 + panY;
+  ctx.drawImage(IMG, dx, dy, dw, dh);
+  // 底部压暗，保字幕可读（editorial 黑场）
+  const g = ctx.createLinearGradient(0, H * 0.45, 0, H);
+  g.addColorStop(0, "rgba(0,0,0,0)");
+  g.addColorStop(1, "rgba(0,0,0,0.82)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(0,0,0,0.28)";             // 全画面轻压
+  ctx.fillRect(0, 0, W, H);
+}
+
+function activeSegment(t) {
+  const segs = DATA.segments;
+  for (const s of segs) {
+    if (t >= s.start - 0.25 && t <= s.end + 0.9) return s;
+  }
+  return null;
+}
+
+function drawLyrics(t) {
+  const seg = activeSegment(t);
+  if (!seg) return;
+  const words = seg.words;
+  const accent = DATA.config.accent;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  const fontSize = 84;
+  ctx.font = `700 ${fontSize}px "DejaVu Sans Mono", monospace`;
+  // 排版：整句居中，底部安全区（基线 H-150）
+  const gap = fontSize * 0.42;
+  const widths = words.map(w => ctx.measureText(w.word.toUpperCase()).width);
+  const total = widths.reduce((a, b) => a + b, 0) + gap * (words.length - 1);
+  let x = (W - total) / 2;
+  const y = H - 150;
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    let alpha, size = fontSize;
+    if (t < w.start - 0.06)      alpha = 0.0;        // 未出现
+    else if (t <= w.end + 0.12) { alpha = 1.0; size = fontSize * 1.10; } // 当前词高亮
+    else                          alpha = 0.4;        // 已过词
+    if (alpha > 0) {
+      ctx.save();
+      if (size !== fontSize) {
+        ctx.font = `700 ${size}px "DejaVu Sans Mono", monospace`;
+      }
+      const w2 = ctx.measureText(w.word.toUpperCase()).width;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = "#F2F0EB";
+      ctx.fillText(w.word.toUpperCase(), x + w2 / 2, y);
+      if (size !== fontSize) {                        // 当前词下划 accent
+        ctx.fillStyle = accent;
+        ctx.fillRect(x, y + 18, w2, 8);
+      }
+      ctx.restore();
+    }
+    x += widths[i] + gap;
+  }
+}
+
+function drawBeatDot(t) {
+  const { pulse } = beatPulse(t);
+  const x = 96, y = 96, r = 14;
+  ctx.save();
+  ctx.globalAlpha = 0.25 + 0.75 * pulse;
+  ctx.fillStyle = DATA.config.accent;
+  ctx.beginPath();
+  ctx.arc(x, y, r + 8 * pulse, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  // BPM 角标（mono 小字）
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = "#F2F0EB";
+  ctx.font = '400 24px "DejaVu Sans Mono", monospace';
+  ctx.textAlign = "left";
+  ctx.fillText(`${DATA.config.bpm.toFixed(1)} BPM`, x + 36, y + 8);
+  ctx.restore();
+}
+
+window.render = function (t) {
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, W, H);
+  if (!DATA || !IMG) return;
+  drawBackground(t);
+  drawBeatDot(t);
+  drawLyrics(t);
+};
+</script>
+</body>
+</html>
